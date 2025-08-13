@@ -1,19 +1,32 @@
-import express, { Request, Response } from "express"
+import express from "express";
+import cors from "cors";
+import { createServer } from "http";
 import dotenv from "dotenv";
+import { Server, Socket } from "socket.io";
+import {
+  ClientToServerEvents, ServerToClientEvents,
+  InterServerEvents, SocketData
+} from "./types/types";
+import { SocketHandler } from "./services/sockethandler";
 
 dotenv.config();
+
+const PORT = parseInt(process.env.BACKEND_PORT || "3000", 10);
 const app = express();
-const PORT : string | undefined = process.env.BACKEND_PORT;
+const httpServer = createServer(app);
+
+const io: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData> =
+  new Server(httpServer, {
+    cors: { origin: "*", methods: ["GET", "POST"] }
+  });
 
 app.use(express.json());
+app.use(cors());
 
-app.get('/', async(req: Request, res: Response) : Promise<void> => {
-    res.status(400).json({
-        message : "Hi there!"
-    })
-})
+const handler = new SocketHandler(io);
 
-app.listen(PORT, () : void => {
-    console.log(`Port ${PORT} open`)
-})
+io.on("connection", (socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) => {
+  handler.register(socket);
+});
 
+httpServer.listen(PORT, () => console.log(`listening on ${PORT}`));
