@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum QuizStatus {
+  DRAFT
+  ACTIVE
+  ENDED
+}
+
+model User { 
+  id              Int             @id             @default(autoincrement())
+  username        String          @unique
+  password        String          
+  firstName       String?
+  lastName        String?
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  quizzes            Quiz[]
+
+}
+
+model Quiz {
+  id              Int             @id             @default(autoincrement())
+  userId          Int
+  code            String          @unique
+  topic           String
+  status          QuizStatus      @default(DRAFT)
+  leaderboard     Leaderboard?         
+
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questions       Question[]
+    
+  createdAt       DateTime        @default(now())
+  expiresAt       DateTime?
+}
+
+model Question {
+  id              Int             @id             @default(autoincrement())
+  quizId          Int
+  title           String
+
+  options         Option[]
+  quiz            Quiz            @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
+
+model Option {
+  id              Int             @id             @default(autoincrement())
+  title           String
+  isCorrect       Boolean         @default(false)
+  questionId      Int
+
+  question        Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model Leaderboard {
+  id              Int             @id             @default(autoincrement())
+  quizId          Int?            @unique
+
+  quiz            Quiz?           @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+
+}
