@@ -1,4 +1,4 @@
-import { PrismaClient } from "../generated/prisma"
+import type { PrismaClient } from "@prisma/client"; 
 import { UserSchema, User } from "@jaswant5ingh/prompt-play-zod"
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
@@ -24,6 +24,16 @@ export class AuthHandler{
 
     if(!validation.success){
       throw new Error(`Invalid Input ${validation.error.message}`);
+    }
+
+    const existingUser = await this.prisma.user.findFirst({
+      where : {
+        username
+      }
+    });
+
+    if(existingUser){
+      throw new Error("User Already Exists");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -71,7 +81,7 @@ export class AuthHandler{
     const compare = await bcrypt.compare(password, user.password)
     
     if(!compare){
-      throw new Error(`Invalid Paddword`);
+      throw new Error(`Invalid Password`);
     }
 
     const JWT_SECRET = process.env.JWT_SECRET;
