@@ -17,3 +17,11 @@ export interface SocketData {
   name: string;
   age: number;
 }
+
+declare global {
+  namespace Express {
+    interface Request {
+      userId?: string;
+    }
+  }
+}

@@ -30,7 +30,8 @@ model User {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
-  quizzes            Quiz[]
+  quizzes         Quiz[]
+  points          Point[]    
 
 }
 
@@ -39,11 +40,11 @@ model Quiz {
   userId          Int
   code            String          @unique
   topic           String
-  status          QuizStatus      @default(DRAFT)
-  leaderboard     Leaderboard?         
+  status          QuizStatus      @default(DRAFT)         
 
   user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   questions       Question[]
+  point           Point[]
     
   createdAt       DateTime        @default(now())
   expiresAt       DateTime?
@@ -67,11 +68,12 @@ model Option {
   question        Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
 }
 
-model Leaderboard {
+model Point {
   id              Int             @id             @default(autoincrement())
-  quizId          Int?            @unique
+  userId          Int
+  quizId          Int
+  score           Int             @default(0)
 
-  quiz            Quiz?           @relation(fields: [quizId], references: [id], onDelete: Cascade)
-
-
+  user            User            @relation(fields: [userId], references: [id])
+  quiz            Quiz            @relation(fields: [quizId], references: [id])
 }

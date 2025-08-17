@@ -10,4 +10,10 @@ export class SocketHandler {
     register(socket : IOSocket){
         console.log(`Socket ID is ${socket.id}`)
     }
+
+
+    joinRoom(){
+        
+    }
+
 }
