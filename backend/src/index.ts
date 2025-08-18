@@ -9,6 +9,7 @@ import {
 } from "./types/types";
 import { SocketHandler } from "./services/SocketHandler";
 import authRouter from "./routes/authRoutes";
+import quizRouter from "./routes/quizRoutes";
 
 dotenv.config();
 
@@ -24,7 +25,8 @@ const io: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, 
 app.use(express.json());
 app.use(cors());
 
-app.use("/api/v1/auth", authRouter)
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/quiz", quizRouter)
 
 const handler = new SocketHandler(io);
 

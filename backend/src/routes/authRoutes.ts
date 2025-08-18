@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { AuthHandler } from "../services/AuthHandler";
-import { prisma } from "../db";
+import { prisma } from "../lib/db";
 
 const authRouter = express.Router();
 const authHandler = new AuthHandler(prisma);
@@ -81,5 +81,9 @@ authRouter.post('/signup', async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 })
+
+// authRouter.put("/change-password", async(req: Request, res: Response) => {
+
+// })
 
 export default authRouter;

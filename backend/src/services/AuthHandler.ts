@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 dotenv.config()
 
 export class AuthHandler{
-  private prisma : PrismaClient 
+  private prisma; 
 
   constructor(prisma : PrismaClient){
     this.prisma = prisma
