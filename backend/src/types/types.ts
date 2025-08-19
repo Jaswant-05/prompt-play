@@ -18,6 +18,12 @@ export interface SocketData {
   age: number;
 }
 
+export enum QUIZ_STATUS {
+  "DRAFT",
+  "ACTIVE",
+  "ENDED"
+}
+
 declare global {
   namespace Express {
     interface Request {
