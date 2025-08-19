@@ -63,15 +63,15 @@ export class QuizHandler{
     })
   }
 
-  async getQuiz(quizId : number){
+  async getQuiz(code : string){
 
-    if(!quizId){
+    if(!code){
       throw new Error(`quizId not found`)
     }
 
     const quiz = await this.prisma.quiz.findFirst({
       where : {
-        id : quizId
+        code : code
       },
       include: {
         questions: {

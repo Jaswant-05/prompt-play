@@ -1,4 +1,4 @@
-import express from "express";
+import express, { NextFunction } from "express";
 import cors from "cors";
 import { createServer } from "http";
 import dotenv from "dotenv";
@@ -10,6 +10,8 @@ import {
 import { SocketHandler } from "./services/SocketHandler";
 import authRouter from "./routes/authRoutes";
 import quizRouter from "./routes/quizRoutes";
+import { wsMiddleware } from "./middleware/authMiddleware";
+import { prisma } from "./lib/db";
 
 dotenv.config();
 
@@ -28,7 +30,9 @@ app.use(cors());
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/quiz", quizRouter)
 
-const handler = new SocketHandler(io);
+const handler = new SocketHandler(io, prisma);
+
+io.use(wsMiddleware);
 
 io.on("connection", (socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) => {
   handler.register(socket);

@@ -44,14 +44,14 @@ quizRouter.post('/', async (req: Request, res: Response) => {
   }
 });
 
-quizRouter.get("/:quizId", async (req: Request, res: Response) => {
+quizRouter.get("/:code", async (req: Request, res: Response) => {
   try {
-    const quizId = Number(req.params.quizId);
-    if (!quizId) {
-      return res.status(400).json({ error: "quizId is required" });
+    const code = req.params.code;
+    if (!code) {
+      return res.status(400).json({ error: "code is required" });
     }
 
-    const data = await quizHandler.getQuiz(quizId);
+    const data = await quizHandler.getQuiz(code);
     return res.status(200).json({ success: true, data });
   } catch (err: any) {
     res.status(400).json({ err: err.message });
