@@ -3,6 +3,8 @@ export interface ServerToClientEvents {
   basicEmit: (a: number, b: string, c: Buffer) => void;
   withAck: (d: string, callback: (e: number) => void) => void;
   joinRoom: (code: string) => void;
+  start_quiz: (code: string) => void;
+  submit_answer: (p: { code: string; questionId: number; optionId: number }) => void;
 }
 
 export interface ClientToServerEvents {
@@ -11,7 +13,12 @@ export interface ClientToServerEvents {
   start: (data: Object) => void
   error: (data: Object) => void
   joinedRoom: (data: Object) => void,
-  playerJoined: (data: object) => void
+  playerJoined: (data: Object) => void
+  question: (data: Object) => void
+  answer_received: (data: Object) => void
+  reveal: (data: Object) => void
+  leaderboard: (data: Object) => void
+  quizEnded: () => void
 }
 
 export interface InterServerEvents {
