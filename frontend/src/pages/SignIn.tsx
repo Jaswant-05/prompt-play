@@ -5,14 +5,23 @@ import { Eye, EyeOff, Mail, Lock, ArrowLeft, Sparkles } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Card from '../components/ui/Card';
+import axios from "axios"
+import type { User } from "@jaswant5ingh/prompt-play-zod"
+import { useNavigate } from 'react-router-dom';
+
+type formError = {
+  message? : string
+}
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
+  const [formData, setFormData] = useState<User>({
+    username: '',
     password: ''
   });
+  const [error, setError] = useState<formError>({})
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -23,11 +32,37 @@ export default function SignIn() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError({})
     setIsLoading(true);
     
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    console.log('Sign in data:', formData);
+    try{
+      const result = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/signin`,{
+        username : formData.username,
+        password : formData.password
+      },{
+        headers : {
+          "Content-Type" : "application/json"
+        }
+      })
+
+      if (!result.data.success) {
+        setError({ message: result.data.message });
+      } else {
+        console.log("token", result.data.token);
+        console.log("userId", result.data.userId);
+        localStorage.setItem('token', `Bearer ${result.data.token}`)
+        localStorage.setItem('userId', result.data.userId)
+        navigate("/")
+      }
+
+    } catch(err: any){
+      if (err.response?.data?.message) {
+        setError({ message: err.response.data.message });
+      } else {
+        setError({ message: "Something went wrong. Please try again." });
+      }
+    }
+  
     setIsLoading(false);
   };
 
@@ -66,9 +101,9 @@ export default function SignIn() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <Input
                 label="Email"
-                type="email"
-                name="email"
-                value={formData.email}
+                type="username"
+                name="username"
+                value={formData.username}
                 onChange={handleInputChange}
                 icon={<Mail className="w-5 h-5" />}
                 required
@@ -115,7 +150,11 @@ export default function SignIn() {
                 )}
               </Button>
             </form>
-
+            {error.message && (
+              <div className="mt-4 text-red-600 text-sm text-center">
+                {error.message}
+              </div>
+            )}
             <div className="mt-8 text-center">
               <p className="text-gray-600">
                 Don't have an account?{' '}

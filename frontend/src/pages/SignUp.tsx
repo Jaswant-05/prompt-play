@@ -1,19 +1,26 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Eye, EyeOff, Mail, User, Lock, ArrowLeft, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Mail, User as UserIcon, Lock, ArrowLeft, Sparkles } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
+import axios from "axios"
+import type { User } from "@jaswant5ingh/prompt-play-zod"
+
+type formError = {
+  message? : string
+}
 
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<User>({
     firstName: '',
     lastName: '',
-    email: '',
+    username: '',
     password: ''
   });
+  const[error, setError] = useState<formError>({})
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,12 +32,37 @@ export default function SignUp() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError({})
     setIsLoading(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    console.log('Sign up data:', formData);
+
+    try { 
+      const result = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/auth/signup`,
+        {
+          username: formData.username,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!result.data.success) {
+        setError({ message: result.data.message });
+      } else {
+        console.log("User created:", result.data.user);
+      }
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        setError({ message: err.response.data.message });
+      } else {
+        setError({ message: "Something went wrong. Please try again." });
+      }
+    }
     setIsLoading(false);
   };
 
@@ -73,7 +105,7 @@ export default function SignUp() {
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleInputChange}
-                  icon={<User className="w-5 h-5" />}
+                  icon={<UserIcon className="w-5 h-5" />}
                   required
                 />
                 
@@ -82,16 +114,16 @@ export default function SignUp() {
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleInputChange}
-                  icon={<User className="w-5 h-5" />}
+                  icon={<UserIcon className="w-5 h-5" />}
                   required
                 />
               </div>
 
               <Input
                 label="Email"
-                type="email"
-                name="email"
-                value={formData.email}
+                type="username"
+                name="username"
+                value={formData.username}
                 onChange={handleInputChange}
                 icon={<Mail className="w-5 h-5" />}
                 required
@@ -132,6 +164,11 @@ export default function SignUp() {
                 )}
               </Button>
             </form>
+            {error.message && (
+              <div className="mt-4 text-red-600 text-sm text-center">
+                {error.message}
+              </div>
+            )}
 
             <div className="mt-8 text-center">
               <p className="text-gray-600">
