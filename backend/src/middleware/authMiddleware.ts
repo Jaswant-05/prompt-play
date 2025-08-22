@@ -9,9 +9,10 @@ export const authMiddleware = async(req : Request, res : Response, next : NextFu
       message : "Not Authorized"
     })
   }
-  
+  console.log(authorization)
   const authPayload = authorization.split(" ");
   const token = authPayload[1];
+  console.log(token)
 
   if(!token){
     return res.status(403).json({
@@ -43,8 +44,8 @@ export const wsMiddleware = (
   socket: Socket,
   next: (err?: ExtendedError) => void
 ): void => {
+  console.log('Socket middleware - auth:', socket.handshake.auth)
   const token = socket.handshake.auth?.token;
-
   if (!token) {
     return next(new Error("Not Authorized"));
   }
@@ -60,6 +61,7 @@ export const wsMiddleware = (
     if (!decoded?.id) {
       return next(new Error("Invalid Token"));
     }
+    console.log('Socket authenticated for userId:', decoded.id);
 
     socket.data.userId = decoded.id;
     next();

@@ -23,7 +23,8 @@ authRouter.post('/signin', async (req: Request, res: Response) => {
 
     res.status(200).json({
       success : true,
-      token : result.data.token
+      token : result.data.token,
+      userId : result.data.userId
     })
 
   }catch(err : any){

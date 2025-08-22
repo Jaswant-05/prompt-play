@@ -2,7 +2,6 @@ import { io } from "socket.io-client";
 const URL = "http://localhost:3000";
 const CODE = "ABC123";
 
-// src/shims.d.ts (or src/global.d.ts)
 declare var process: {
   env: { [key: string]: string | undefined };
   argv: string[];

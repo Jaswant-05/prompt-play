@@ -10,7 +10,7 @@ export class QuizHandler{
   }
 
   async createQuiz({userId, code, topic, status = "DRAFT", questions} : Quiz) {
-
+    
     const payload = QuizSchema.safeParse({
       userId,
       code,
@@ -18,6 +18,8 @@ export class QuizHandler{
       status,
       questions
     });
+
+    console.log(payload.data);
 
     if(!userId){
       throw new Error("Missing userId")

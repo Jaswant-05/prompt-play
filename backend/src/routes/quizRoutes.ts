@@ -3,16 +3,22 @@ import { OpenAiHandler } from "../services/OpenAiHandler";
 import { openai } from "../lib/openai";
 import { QuizHandler } from "../services/QuizHandler";
 import { prisma } from "../lib/db";
+import { generateCode } from "../utils/generateCode";
+import { authMiddleware } from "../middleware/authMiddleware";
 
 const quizRouter = express.Router();
 const openAiHandler = new OpenAiHandler(openai);
 const quizHandler = new QuizHandler(prisma);
 
-quizRouter.post('/', async (req: Request, res: Response) => {
+quizRouter.post('/', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { userId, code, topic, status = "DRAFT", title, difficulty, prompt } = req.body || {};
+    const userId = Number(req.userId);
+    console.log(userId)
+    console.log(req.body);
 
-    if (!userId || !code || !topic || !title || !difficulty || !prompt) {
+    const { status = "DRAFT", title, difficulty, prompt } = req.body || {};
+
+    if (!userId || !title || !difficulty || !prompt) {
       return res.status(400).json({
         error: "Missing required fields: userId, code, topic, title, difficulty, prompt",
       });
@@ -23,6 +29,11 @@ quizRouter.post('/', async (req: Request, res: Response) => {
     if (!aiQuiz.questions) {
       return res.status(500).json({ error: "Failed to generate quiz from AI" });
     }
+
+    const code = generateCode();
+    const topic = title;
+    console.log(title);
+    console.log(code);
 
     const savedQuiz = await quizHandler.createQuiz({
       userId,

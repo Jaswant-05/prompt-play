@@ -51,7 +51,7 @@ export class SocketHandler {
 
     const quiz = await this.prisma.quiz.findFirst({
       where: { code },
-      select: { id: true, topic: true, status: true }
+      select: { id: true, topic: true, status: true, userId: true }
     });
 
     if (!quiz) return socket.emit("error", { message: "Quiz not found." });
@@ -65,7 +65,8 @@ export class SocketHandler {
       quizId: quiz.id,
       topic: quiz.topic,
       status: quiz.status,
-      playersCount: count
+      playersCount: count,
+      ownerId: quiz.userId
     });
 
     socket.to(code).emit("playerJoined", { userId: socket.data.userId, socketId: socket.id });
