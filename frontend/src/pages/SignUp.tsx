@@ -6,6 +6,7 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import axios from "axios"
+import { useNavigate } from 'react-router-dom';
 import type { User } from "@jaswant5ingh/prompt-play-zod"
 
 type formError = {
@@ -22,6 +23,7 @@ export default function SignUp() {
   });
   const[error, setError] = useState<formError>({})
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -55,6 +57,7 @@ export default function SignUp() {
         setError({ message: result.data.message });
       } else {
         console.log("User created:", result.data.user);
+        navigate('/signin')
       }
     } catch (err: any) {
       if (err.response?.data?.message) {

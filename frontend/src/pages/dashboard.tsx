@@ -3,7 +3,7 @@ import Sidebar from '../components/layout/Layout';
 import MainContent from '../components/MainContent';
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('create');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (

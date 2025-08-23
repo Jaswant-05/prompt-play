@@ -52,7 +52,7 @@ export default function SignIn() {
         console.log("userId", result.data.userId);
         localStorage.setItem('token', `Bearer ${result.data.token}`)
         localStorage.setItem('userId', result.data.userId)
-        navigate("/")
+        navigate("/dashboard")
       }
 
     } catch(err: any){
