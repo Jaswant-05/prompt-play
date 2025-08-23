@@ -56,14 +56,16 @@ export const wsMiddleware = (
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string, username: string };
 
-    if (!decoded?.id) {
+    if (!decoded?.id || !decoded.username) {
       return next(new Error("Invalid Token"));
     }
-    console.log('Socket authenticated for userId:', decoded.id);
+
+    console.log('Socket authenticated for userId:', decoded.username);
 
     socket.data.userId = decoded.id;
+    socket.data.username = decoded.username
     next();
   } catch (err) {
     return next(new Error("Invalid Token"));

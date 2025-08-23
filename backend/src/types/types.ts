@@ -12,12 +12,14 @@ export interface ClientToServerEvents {
   join: (data: Object) => void
   start: (data: Object) => void
   error: (data: Object) => void
-  joinedRoom: (data: Object) => void,
-  playerJoined: (data: Object) => void
+  joinedRoom: (data: Object) => void
+  playerLeft : (data: Object) => void
+  playerJoined: (data: Object) => void  
   question: (data: Object) => void
   answer_received: (data: Object) => void
   reveal: (data: Object) => void
   leaderboard: (data: Object) => void
+  roomState: (data: Object) => void
   quizEnded: () => void
 }
 
@@ -29,6 +31,7 @@ export interface SocketData {
   name: string;
   age: number;
   userId? : string
+  username? : string
 }
 
 export enum QUIZ_STATUS {

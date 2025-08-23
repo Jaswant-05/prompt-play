@@ -87,7 +87,7 @@ export class AuthHandler{
     const JWT_SECRET = process.env.JWT_SECRET;
     if (!JWT_SECRET) throw new Error(`JWT_SECRET is required`);
 
-    const token = jwt.sign({ username, id : user.id }, JWT_SECRET)
+    const token = jwt.sign({ username : user.firstName, id : user.id }, JWT_SECRET)
 
     if(!token){
       throw new Error(`Error generating Token`)

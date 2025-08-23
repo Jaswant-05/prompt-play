@@ -8,7 +8,7 @@ import {
 } from "../types/types";
 
 type IOServer = Server<ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData>;
-type IOSocket  = Socket<ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData>;
+type IOSocket = Socket<ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData>;
 
 const ANSWER_MS = 30_000;
 const REVIEW_MS = 15_000;
@@ -44,6 +44,26 @@ export class SocketHandler {
     socket.on("submit_answer", (p: { code: string; questionId: number; optionId: number }) =>
       this.submitAnswer(socket, p)
     );
+    socket.on("disconnect", async () => {
+      for (const room of socket.rooms) {
+        if (room !== socket.id) {
+          await this.broadcastRoomState(room);
+        }
+      }
+    });
+  }
+
+  private async broadcastRoomState(code: string) {
+    const sockets = await this.io.in(code).fetchSockets();
+    const players = sockets.map(s => ({
+      userId: s.data.userId,
+      socketId: s.id,
+      username: s.data.username
+    }));
+    this.io.to(code).emit("roomState", {
+      players,
+      playersCount: players.length
+    });
   }
 
   async joinRoom(socket: IOSocket, code: string) {
@@ -54,22 +74,23 @@ export class SocketHandler {
       select: { id: true, topic: true, status: true, userId: true }
     });
 
+    if (socket.rooms.has(code)) return;
     if (!quiz) return socket.emit("error", { message: "Quiz not found." });
     if (quiz.status !== "DRAFT") return socket.emit("error", { message: "Quiz already started." });
 
     socket.join(code);
-    const count = this.io.sockets.adapter.rooms.get(code)?.size ?? 0;
 
+    const sockets = await this.io.in(code).fetchSockets();
     socket.emit("joinedRoom", {
       roomId: code,
       quizId: quiz.id,
       topic: quiz.topic,
       status: quiz.status,
-      playersCount: count,
+      playersCount: sockets.length,
       ownerId: quiz.userId
     });
 
-    socket.to(code).emit("playerJoined", { userId: socket.data.userId, socketId: socket.id });
+    await this.broadcastRoomState(code);
   }
 
   async startQuiz(socket: IOSocket, code: string) {
@@ -86,7 +107,10 @@ export class SocketHandler {
     if (quiz.userId !== userId) return socket.emit("error", { message: "Only the owner can start" });
     if (quiz.questions.length === 0) return socket.emit("error", { message: "Quiz has no questions" });
 
-    await this.prisma.quiz.update({ where: { id: quiz.id }, data: { status: "ACTIVE" as QuizStatus } });
+    await this.prisma.quiz.update({
+      where: { id: quiz.id },
+      data: { status: "ACTIVE" as QuizStatus }
+    });
 
     const state: QuizState = {
       quizId: quiz.id,
@@ -101,7 +125,11 @@ export class SocketHandler {
       questions: quiz.questions.map(q => ({
         id: q.id,
         title: q.title,
-        options: q.options.map(o => ({ id: o.id, title: o.title, isCorrect: o.isCorrect }))
+        options: q.options.map(o => ({
+          id: o.id,
+          title: o.title,
+          isCorrect: o.isCorrect
+        }))
       }))
     };
 
@@ -147,21 +175,31 @@ export class SocketHandler {
     const correct = q.options.find(o => o.isCorrect)!;
 
     for (const [uid, oid] of s.answers.entries()) {
-        if (oid === correct.id) {
-            const newScore = (s.scores.get(uid) ?? 0) + POINTS;
-            s.scores.set(uid, newScore);
+      if (oid === correct.id) {
+        const newScore = (s.scores.get(uid) ?? 0) + POINTS;
+        s.scores.set(uid, newScore);
 
-            await this.prisma.point.upsert({
-            where: { userId_quizId: { userId: uid, quizId: s.quizId } },
-            update: { score: newScore },
-            create: { userId: uid, quizId: s.quizId, score: newScore }
-            });
-        }
-        }
+        await this.prisma.point.upsert({
+          where: { userId_quizId: { userId: uid, quizId: s.quizId } },
+          update: { score: newScore },
+          create: { userId: uid, quizId: s.quizId, score: newScore }
+        });
+      }
+    }
+
+    const sockets = await this.io.in(code).fetchSockets();
 
     const leaderboard = Array.from(s.scores.entries())
-      .map(([userId, score]) => ({ userId, score }))
-      .sort((a, b) => b.score - a.score);
+    .map(([userId, score]) => {
+      const socket = sockets.find(s => Number(s.data.userId) === userId);
+      return {
+        userId,
+        username: socket?.data.username || `User-${userId}`,
+        score
+      };
+    })
+    .sort((a, b) => b.score - a.score);
+
 
     this.io.to(code).emit("reveal", { questionId: q.id, correctOptionId: correct.id });
     this.io.to(code).emit("leaderboard", { leaderboard });
@@ -179,14 +217,22 @@ export class SocketHandler {
     if (nextIdx >= s.questions.length) {
       s.phase = "ended";
       this.io.to(code).emit("quizEnded");
+
       for (const [uid, score] of s.scores.entries()) {
         await this.prisma.point.upsert({
-            where: { userId_quizId: { userId: uid, quizId: s.quizId } },
-            update: { score },
-            create: { userId: uid, quizId: s.quizId, score }
+          where: { userId_quizId: { userId: uid, quizId: s.quizId } },
+          update: { score },
+          create: { userId: uid, quizId: s.quizId, score }
         });
-    }
-      try { await this.prisma.quiz.update({ where: { id: s.quizId }, data: { status: "ENDED" as QuizStatus } }); } catch {}
+      }
+
+      try {
+        await this.prisma.quiz.update({
+          where: { id: s.quizId },
+          data: { status: "ENDED" as QuizStatus }
+        });
+      } catch {}
+
       this.clear(s);
       this.active.delete(code);
       return;
@@ -207,7 +253,11 @@ export class SocketHandler {
   }
 
   private safe(q: CachedQuestion) {
-    return { id: q.id, title: q.title, options: q.options.map(o => ({ id: o.id, title: o.title })) };
+    return {
+      id: q.id,
+      title: q.title,
+      options: q.options.map(o => ({ id: o.id, title: o.title }))
+    };
   }
 
   private clear(s: QuizState) {
