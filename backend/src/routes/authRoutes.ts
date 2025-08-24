@@ -78,7 +78,6 @@ authRouter.post('/signup', async (req: Request, res: Response) => {
     } = req.body
 
     const result = await authHandler.signup({username, password, firstName, lastName});
-
     if(!result.success){
       return res.status(400).json({
         success: false,
@@ -92,6 +91,7 @@ authRouter.post('/signup', async (req: Request, res: Response) => {
     })
     
   }catch(err: any){
+    console.error(err.message)
     if (err.message.includes("Invalid Input")) {
       return res.status(400).json({ success: false, message: "Invalid username or password" });
     }

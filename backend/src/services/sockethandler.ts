@@ -11,7 +11,7 @@ type IOServer = Server<ServerToClientEvents, ClientToServerEvents, InterServerEv
 type IOSocket = Socket<ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData>;
 
 const ANSWER_MS = 30_000;
-const REVIEW_MS = 15_000;
+const REVIEW_MS = 10_000;
 const CODE_RE = /^[A-Z0-9]{6}$/i;
 const POINTS = 10;
 

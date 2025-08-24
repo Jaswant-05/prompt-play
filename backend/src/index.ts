@@ -33,13 +33,6 @@
 
   io.use(wsMiddleware);
 
-  // io.use((socket, next) => {
-  //   const userId = socket.handshake.auth?.userId;
-  //   if (!userId) return next(new Error("Missing userId"));
-  //   socket.data.userId = userId;
-  //   next();
-  // });
-
   io.on("connection", (socket: Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>) => {
     handler.register(socket);
   });
