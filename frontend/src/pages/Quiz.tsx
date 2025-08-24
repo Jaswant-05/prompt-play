@@ -80,7 +80,7 @@ export default function Quiz() {
     }
 
     if (!code) return;
-    const newSocket = io("http://localhost:3000", {
+    const newSocket = io(import.meta.env.VITE_BACKEND, {
       auth: { token }
     });
 
