@@ -5,6 +5,8 @@ import SignIn from './pages/SignIn'
 import './App.css'
 import Dashboard from './pages/dashboard'
 import Quiz from './pages/Quiz'
+import Verify from './pages/verify'
+import Reset from './pages/Reset'
 
 function App() {
 
@@ -16,6 +18,8 @@ function App() {
         <Route path="/signin" element={<SignIn />} />
         <Route path="/dashboard" element={<Dashboard/>} />
         <Route path="/quiz" element={<Quiz/>}/>
+        <Route path="/verify" element={<Verify/>}/>
+        <Route path="/reset-password" element={<Reset/>}/>
     </Routes>
     </BrowserRouter>
   )

@@ -13,6 +13,10 @@ type formError = {
   message? : string
 }
 
+type message = {
+  message? : string
+}
+
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<User>({
@@ -20,6 +24,7 @@ export default function SignIn() {
     password: ''
   });
   const [error, setError] = useState<formError>({})
+  const [message, setMessage] = useState<message>({});
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -48,8 +53,6 @@ export default function SignIn() {
       if (!result.data.success) {
         setError({ message: result.data.message });
       } else {
-        console.log("token", result.data.token);
-        console.log("userId", result.data.userId);
         localStorage.setItem('token', `Bearer ${result.data.token}`)
         localStorage.setItem('userId', result.data.userId)
         navigate("/dashboard")
@@ -64,6 +67,40 @@ export default function SignIn() {
     }
   
     setIsLoading(false);
+  };
+
+  const handleForgotPassword = async () => {
+    setMessage({})
+    if (!formData.username.trim()) {
+      setMessage({ message: "Please enter your email address first" });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      const result = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/request-reset`, {
+        username: formData.username
+      }, {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (result.data.success) {
+        setMessage({ message: "Password reset email sent! Check your inbox." });
+      } else {
+        setError({ message: result.data.message });
+      }
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        setError({ message: err.response.data.message });
+      } else {
+        setError({ message: "Something went wrong. Please try again." });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -129,9 +166,13 @@ export default function SignIn() {
               </div>
 
               <div className="flex justify-end">
-                <a href="/forgot-password" className="text-sm text-gray-600 hover:text-purple-600 transition-colors">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-sm text-gray-600 hover:text-purple-600 transition-colors underline"
+                >
                   Forgot your password?
-                </a>
+                </button>
               </div>
 
               <Button
@@ -153,6 +194,11 @@ export default function SignIn() {
             {error.message && (
               <div className="mt-4 text-red-600 text-sm text-center">
                 {error.message}
+              </div>
+            )}
+            {message.message && (
+              <div className="mt-4 text-sm text-center">
+                {message.message}
               </div>
             )}
             <div className="mt-8 text-center">

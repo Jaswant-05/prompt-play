@@ -19,6 +19,7 @@ export default function LeaderboardTab({
   quizEnded,
   onReturnToDashboard
 }: LeaderboardTabProps) {
+  
   const getRankIcon = (position: number) => {
     switch (position) {
       case 1:
