@@ -1,5 +1,7 @@
 # 🎮 Prompt-Play AI  
 
+<img width="1495" height="845" alt="promptplay" src="https://github.com/user-attachments/assets/aad26ec8-93a5-479a-8bf8-1cfbf82628ec" />
+
 **Prompt-Play AI** is an interactive multiplayer quiz platform with **AI-generated questions** and real-time gameplay. Players join sessions with a code, compete against each other, and track their scores live, while hosts manage game flow seamlessly.  
 
 👉 Live Demo: [promptplay.co](https://promptplay.co)  
